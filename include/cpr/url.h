@@ -6,6 +6,7 @@ namespace cpr {
 
 class Url : public std::string {
 public:
+    Url() = default;
     using std::string::string;
 
     explicit Url(const std::string &std_string) : std::string(std_string) {}
