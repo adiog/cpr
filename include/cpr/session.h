@@ -24,7 +24,7 @@ namespace cpr {
 class Session {
   public:
     Session();
-    ~Session() noexcept = default;
+    ~Session() noexcept;
 
     void SetUrl(const Url& url);
     void SetUrl(Url&& url);
