@@ -8,6 +8,8 @@
 
 namespace cpr {
 
+    // why not smth like:
+    // using Proxies = std::map<std::string, std::string>;
 class Proxies {
   public:
     Proxies() {}

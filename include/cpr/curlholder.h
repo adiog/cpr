@@ -9,8 +9,8 @@ namespace cpr {
 
 struct CurlHolder {
     CURL* handle;
-    struct curl_slist* chunk;
-    struct curl_httppost* formpost;
+    struct curl_slist* chunk; // TODO: NEVER USED (in 'read after write' sense)!
+    struct curl_httppost* formpost; // TODO: NEVER USED - see above
     char error[CURL_ERROR_SIZE];
 };
 

@@ -1151,7 +1151,7 @@ TEST(BasicAuthenticationParameterHeaderTests, BasicAuthenticationParameterHeader
 
 TEST(GetRedirectTests, RedirectTest) {
     auto url = Url{base + "/temporary_redirect.html"};
-    auto response = cpr::Get(url, false); // This should be turned into an object
+    auto response = cpr::Get(url, Redirect::FALSE); // This should be turned into an object
     auto expected_text = std::string{"Found"};
     EXPECT_EQ(expected_text, response.text);
     EXPECT_EQ(url, response.url);

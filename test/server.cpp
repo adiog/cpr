@@ -625,11 +625,15 @@ void Server::TearDown() {
 }
 
 Url Server::GetBaseUrl() {
-    return Url{"http://127.0.0.1:"}.append(SERVER_PORT);
+    auto url = Url{"http://127.0.0.1:"};
+    url.append(SERVER_PORT);
+    return url;
 }
 
 Url Server::GetBaseUrlSSL() {
-    return Url{"https://127.0.0.1:"}.append(SERVER_PORT);
+    auto url = Url{"https://127.0.0.1:"};
+    url.append(SERVER_PORT);
+    return url;
 }
 
 static inline bool is_base64(unsigned char c) {

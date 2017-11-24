@@ -24,9 +24,10 @@ namespace cpr {
 class Session {
   public:
     Session();
-    ~Session();
+    ~Session() noexcept = default;
 
     void SetUrl(const Url& url);
+    void SetUrl(Url&& url);
     void SetParameters(const Parameters& parameters);
     void SetParameters(Parameters&& parameters);
     void SetHeader(const Header& header);
@@ -39,7 +40,7 @@ class Session {
     void SetProxies(const Proxies& proxies);
     void SetMultipart(Multipart&& multipart);
     void SetMultipart(const Multipart& multipart);
-    void SetRedirect(const bool& redirect);
+    void SetRedirect(const Redirect& redirect);
     void SetMaxRedirects(const MaxRedirects& max_redirects);
     void SetCookies(const Cookies& cookies);
     void SetBody(Body&& body);
@@ -61,7 +62,7 @@ class Session {
     void SetOption(const Proxies& proxies);
     void SetOption(Multipart&& multipart);
     void SetOption(const Multipart& multipart);
-    void SetOption(const bool& redirect);
+    void SetOption(const Redirect& redirect);
     void SetOption(const MaxRedirects& max_redirects);
     void SetOption(const Cookies& cookies);
     void SetOption(Body&& body);

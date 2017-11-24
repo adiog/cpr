@@ -162,7 +162,7 @@ TEST(HeadTests, SetEmptyHeaderHeadTest) {
 
 TEST(HeadTests, RedirectHeadTest) {
     auto url = Url{base + "/temporary_redirect.html"};
-    auto response = cpr::Head(url, false);
+    auto response = cpr::Head(url, Redirect::FALSE);
     EXPECT_EQ(std::string{}, response.text);
     EXPECT_EQ(url, response.url);
     EXPECT_EQ(std::string{}, response.header["content-type"]);
@@ -172,7 +172,7 @@ TEST(HeadTests, RedirectHeadTest) {
 
 TEST(HeadTests, ZeroMaxRedirectsHeadTest) {
     auto url = Url{base + "/hello.html"};
-    auto response = cpr::Head(url, 0L);
+    auto response = cpr::Head(url, MaxRedirects{0L});
     EXPECT_EQ(std::string{}, response.text);
     EXPECT_EQ(url, response.url);
     EXPECT_EQ(std::string{"text/html"}, response.header["content-type"]);

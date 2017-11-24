@@ -13,16 +13,19 @@ namespace util {
 
 Header parseHeader(const std::string& headers) {
     Header header;
-    std::vector<std::string> lines;
+    // TODO check abseil implementation - return string_view
+    std::vector<std::string> lines = split(headers, '\n');
+    /*
     std::istringstream stream(headers);
     {
         std::string line;
         while (std::getline(stream, line, '\n')) {
             lines.push_back(line);
         }
-    }
+    }*/
 
     for (auto& line : lines) {
+        // this behaviour looks suspicious
         if (line.substr(0, 5) == "HTTP/") {
             header.clear();
         }
@@ -53,8 +56,8 @@ std::vector<std::string> split(const std::string& to_split, char delimiter) {
     return tokens;
 }
 
-size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
-    data->append(static_cast<char*>(ptr), size * nmemb);
+size_t writeFunction(void* ptr, size_t size, size_t nmemb, void* data) {
+    static_cast<std::string*>(data)->append(static_cast<char*>(ptr), size * nmemb);
     return size * nmemb;
 }
 

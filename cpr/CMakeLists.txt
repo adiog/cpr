@@ -1,21 +1,20 @@
 message(STATUS "Using CURL_INCLUDE_DIRS: ${CURL_INCLUDE_DIRS}.")
 
-add_library(${CPR_LIBRARIES}
+add_library(${CPR_LIBRARY}
 
     # Source files
-    auth.cpp
-    cookies.cpp
-    cprtypes.cpp
-    digest.cpp
-    error.cpp
-    multipart.cpp
-    parameters.cpp
-    payload.cpp
-    proxies.cpp
-    session.cpp
-    timeout.cpp
-    util.cpp
-    ssl_options.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/auth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cookies.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cprtypes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/error.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/multipart.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/parameters.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/payload.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/proxies.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/session.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/timeout.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/util.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ssl_options.cpp
 
     # Header files (useful in IDEs)
     "${CPR_INCLUDE_DIRS}/cpr/api.h"
@@ -37,14 +36,17 @@ add_library(${CPR_LIBRARIES}
     "${CPR_INCLUDE_DIRS}/cpr/session.h"
     "${CPR_INCLUDE_DIRS}/cpr/timeout.h"
     "${CPR_INCLUDE_DIRS}/cpr/util.h"
-    "${CPR_INCLUDE_DIRS}/cpr/ssl_options.h")
+    "${CPR_INCLUDE_DIRS}/cpr/ssl_options.h"
+    "${CPR_INCLUDE_DIRS}/cpr/url.h"
+    "${CPR_INCLUDE_DIRS}/cpr/redirect.h"
+    )
 
 message(STATUS "Using CURL_LIBRARIES: ${CURL_LIBRARIES}.")
-target_link_libraries(${CPR_LIBRARIES}
+target_link_libraries(${CPR_LIBRARY}
     ${CURL_LIBRARIES})
 
 if(NOT (CMAKE_VERSION VERSION_LESS 3.0))
-    target_include_directories(${CPR_LIBRARIES}
+    target_include_directories(${CPR_LIBRARY}
         PUBLIC
         ${CPR_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIRS})

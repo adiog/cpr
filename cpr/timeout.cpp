@@ -8,6 +8,7 @@
 namespace cpr {
 
 long Timeout::Milliseconds() const {
+    // TODO: this seems to be useless check - do not you trust your own class declaration?
     static_assert(std::is_same<std::chrono::milliseconds, decltype(ms)>::value,
                   "Following casting expects milliseconds.");
 

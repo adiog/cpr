@@ -3,6 +3,8 @@
 
 #include <map>
 #include <string>
+#include "cpr/redirect.h"
+#include "cpr/url.h"
 
 namespace cpr {
 
@@ -11,7 +13,6 @@ struct CaseInsensitiveCompare {
 };
 
 using Header = std::map<std::string, std::string, CaseInsensitiveCompare>;
-using Url = std::string;
 
 } // namespace cpr
 

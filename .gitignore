@@ -43,3 +43,7 @@ _site/
 
 # Vim
 .ycm_extra_conf.py*
+
+# JetBrains
+.idea
+cmake-build-debug

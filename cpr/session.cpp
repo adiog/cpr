@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <string>
+#include <memory>
 
 #include <curl/curl.h>
 
@@ -15,7 +16,9 @@ class Session::Impl {
   public:
     Impl();
 
+    // there is no support for rvalue for url - why
     void SetUrl(const Url& url);
+    // all these guys can be written with forwarding reference
     void SetParameters(const Parameters& parameters);
     void SetParameters(Parameters&& parameters);
     void SetHeader(const Header& header);
@@ -28,7 +31,7 @@ class Session::Impl {
     void SetProxies(const Proxies& proxies);
     void SetMultipart(Multipart&& multipart);
     void SetMultipart(const Multipart& multipart);
-    void SetRedirect(const bool& redirect);
+    void SetRedirect(const Redirect& redirect);
     void SetMaxRedirects(const MaxRedirects& max_redirects);
     void SetCookies(const Cookies& cookies);
     void SetBody(Body&& body);
@@ -51,6 +54,8 @@ class Session::Impl {
     Proxies proxies_;
 
     Response makeRequest(CURL* curl);
+
+    // keep those within a class inside constructor/destructor
     static void freeHolder(CurlHolder* holder);
     static CurlHolder* newHolder();
 };
@@ -59,7 +64,10 @@ Session::Impl::Impl() {
     curl_ = std::unique_ptr<CurlHolder, std::function<void(CurlHolder*)>>(newHolder(),
                                                                           &Impl::freeHolder);
     auto curl = curl_->handle;
-    if (curl) {
+    if (!curl) {
+        // defensive programming is shit - fail fast: HERE - thanks to that all other checks are useless
+        throw std::runtime_error("");
+    }
         // Set up some sensible defaults
         auto version_info = curl_version_info(CURLVERSION_NOW);
         auto version = std::string{"curl/"} + std::string{version_info->version};
@@ -79,7 +87,7 @@ Session::Impl::Impl() {
 #endif
 #endif
 #endif
-    }
+
 }
 
 void Session::Impl::freeHolder(CurlHolder* holder) {
@@ -92,7 +100,7 @@ void Session::Impl::freeHolder(CurlHolder* holder) {
 CurlHolder* Session::Impl::newHolder() {
     CurlHolder* holder = new CurlHolder();
     holder->handle = curl_easy_init();
-    holder->chunk = NULL;
+    holder->chunk = NULL; // TODO: modernize nullptr
     holder->formpost = NULL;
     return holder;
 }
@@ -113,6 +121,7 @@ void Session::Impl::SetHeader(const Header& header) {
     auto curl = curl_->handle;
     if (curl) {
         struct curl_slist* chunk = NULL;
+        // todo: modernize loob
         for (auto item = header.cbegin(); item != header.cend(); ++item) {
             auto header_string = std::string{item->first};
             if (item->second.empty()) {
@@ -159,6 +168,7 @@ void Session::Impl::SetDigest(const Digest& auth) {
 void Session::Impl::SetPayload(Payload&& payload) {
     auto curl = curl_->handle;
     if (curl) {
+        // fishy remark - see body
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, payload.content.length());
         curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, payload.content.data());
     }
@@ -245,7 +255,7 @@ void Session::Impl::SetMultipart(const Multipart& multipart) {
     }
 }
 
-void Session::Impl::SetRedirect(const bool& redirect) {
+void Session::Impl::SetRedirect(const Redirect& redirect) {
     auto curl = curl_->handle;
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, std::int32_t(redirect));
@@ -270,6 +280,9 @@ void Session::Impl::SetCookies(const Cookies& cookies) {
 void Session::Impl::SetBody(Body&& body) {
     auto curl = curl_->handle;
     if (curl) {
+        // this is extremely fishy..
+        // am I allowed to provide POST fields while performing GET request??
+        // there is no check / those variants are not properly separated
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.length());
         curl_easy_setopt(curl, CURLOPT_COPYPOSTFIELDS, body.data());
     }
@@ -301,6 +314,7 @@ void Session::Impl::SetVerifySsl(const VerifySsl& verify) {
 
 Response Session::Impl::Delete() {
     auto curl = curl_->handle;
+    // defensive programming is crap - assert constructor creates a valid c curl_->handle
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_HTTPGET, 0L);
         curl_easy_setopt(curl, CURLOPT_NOBODY, 0L);
@@ -353,8 +367,20 @@ Response Session::Impl::Patch() {
 Response Session::Impl::Post() {
     auto curl = curl_->handle;
     if (curl) {
+        // there is a generic issue with custom request:
+        // according to docs:
+        // When setting CURLOPT_POST to 1, it will automatically set CURLOPT_NOBODY to 0.
+        // so the following:
+        /*
         curl_easy_setopt(curl, CURLOPT_NOBODY, 0L);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+         */
+//        should be replaced with:
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        // there is an additional question:
+        // should it be a CURLOPT_POST or CURLOPT_HTTPPOST (Multipart formpost HTTP POST)
+        // a natural way should be probably having two api calls:
+        // Impl::Post and Impl::MultipartPost
     }
 
     return makeRequest(curl);
@@ -365,6 +391,12 @@ Response Session::Impl::Put() {
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_NOBODY, 0L);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+// ??       curl_easy_setopt(curlHandle, CURLOPT_PUT, 1L);
+        // there is no support for payload i.e.:
+//        curl_easy_setopt(curlHandle, CURLOPT_READFUNCTION, read_function);
+//        curl_easy_setopt(curlHandle, CURLOPT_READDATA, &message);
+//        curl_easy_setopt(curlHandle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)message.size());
+//        curl_easy_setopt(curlHandle, CURLOPT_UPLOAD, 1L);
     }
 
     return makeRequest(curl);
@@ -385,7 +417,7 @@ Response Session::Impl::makeRequest(CURL* curl) {
         curl_easy_setopt(curl, CURLOPT_PROXY, "");
     }
 
-    curl_->error[0] = '\0';
+    curl_->error[0] = '\0'; // TODO: consider useless...
 
     std::string response_string;
     std::string header_string;
@@ -423,9 +455,11 @@ Response Session::Impl::makeRequest(CURL* curl) {
 }
 
 // clang-format off
-Session::Session() : pimpl_{ new Impl{} } {}
+Session::Session() : pimpl_{ std::make_unique<Impl>() } {}
 Session::~Session() {}
+    // use forwarding reference -- if needed?
 void Session::SetUrl(const Url& url) { pimpl_->SetUrl(url); }
+void Session::SetUrl(Url&& url) { pimpl_->SetUrl(url); }
 void Session::SetParameters(const Parameters& parameters) { pimpl_->SetParameters(parameters); }
 void Session::SetParameters(Parameters&& parameters) { pimpl_->SetParameters(std::move(parameters)); }
 void Session::SetHeader(const Header& header) { pimpl_->SetHeader(header); }
@@ -438,7 +472,7 @@ void Session::SetProxies(const Proxies& proxies) { pimpl_->SetProxies(proxies); 
 void Session::SetProxies(Proxies&& proxies) { pimpl_->SetProxies(std::move(proxies)); }
 void Session::SetMultipart(const Multipart& multipart) { pimpl_->SetMultipart(multipart); }
 void Session::SetMultipart(Multipart&& multipart) { pimpl_->SetMultipart(std::move(multipart)); }
-void Session::SetRedirect(const bool& redirect) { pimpl_->SetRedirect(redirect); }
+void Session::SetRedirect(const Redirect& redirect) { pimpl_->SetRedirect(redirect); }
 void Session::SetMaxRedirects(const MaxRedirects& max_redirects) { pimpl_->SetMaxRedirects(max_redirects); }
 void Session::SetCookies(const Cookies& cookies) { pimpl_->SetCookies(cookies); }
 void Session::SetBody(const Body& body) { pimpl_->SetBody(body); }
@@ -458,7 +492,11 @@ void Session::SetOption(const Proxies& proxies) { pimpl_->SetProxies(proxies); }
 void Session::SetOption(Proxies&& proxies) { pimpl_->SetProxies(std::move(proxies)); }
 void Session::SetOption(const Multipart& multipart) { pimpl_->SetMultipart(multipart); }
 void Session::SetOption(Multipart&& multipart) { pimpl_->SetMultipart(std::move(multipart)); }
-void Session::SetOption(const bool& redirect) { pimpl_->SetRedirect(redirect); }
+    // this little guy looks suspicious - replace bool with enum:
+    // SetOption(Redirect::True) || SetOption(Redirect::False)
+    // otherwise you are left with:
+    // SetOption(true) :P noone will be able to figure it out
+void Session::SetOption(const Redirect& redirect) { pimpl_->SetRedirect(redirect); }
 void Session::SetOption(const MaxRedirects& max_redirects) { pimpl_->SetMaxRedirects(max_redirects); }
 void Session::SetOption(const Cookies& cookies) { pimpl_->SetCookies(cookies); }
 void Session::SetOption(const Body& body) { pimpl_->SetBody(body); }

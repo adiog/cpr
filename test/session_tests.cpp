@@ -29,7 +29,7 @@ TEST(RedirectTests, NoTemporaryRedirectTest) {
     auto url = Url{base + "/temporary_redirect.html"};
     Session session;
     session.SetUrl(url);
-    session.SetRedirect(false);
+    session.SetRedirect(Redirect::FALSE);
     auto response = session.Get();
     auto expected_text = std::string{"Found"};
     EXPECT_EQ(expected_text, response.text);
@@ -56,7 +56,7 @@ TEST(RedirectTests, NoPermanentRedirectTest) {
     auto url = Url{base + "/permanent_redirect.html"};
     Session session;
     session.SetUrl(url);
-    session.SetRedirect(false);
+    session.SetRedirect(Redirect::FALSE);
     auto response = session.Get();
     auto expected_text = std::string{"Moved Permanently"};
     EXPECT_EQ(expected_text, response.text);

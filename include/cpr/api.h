@@ -18,20 +18,21 @@ namespace cpr {
 
 using AsyncResponse = std::future<Response>;
 
-namespace priv {
+    // TODO: avoid duplicated symbols
+struct priv {
 
 template <typename T>
-void set_option(Session& session, T&& t) {
+static void set_option(Session& session, T&& t) {
     session.SetOption(CPR_FWD(t));
 }
 
 template <typename T, typename... Ts>
-void set_option(Session& session, T&& t, Ts&&... ts) {
+static void set_option(Session& session, T&& t, Ts&&... ts) {
     set_option(session, CPR_FWD(t));
     set_option(session, CPR_FWD(ts)...);
 }
 
-} // namespace priv
+}; // class priv
 
 // Get methods
 template <typename... Ts>
@@ -43,15 +44,15 @@ Response Get(Ts&&... ts) {
 
 // Get async methods
 template <typename... Ts>
-AsyncResponse GetAsync(Ts... ts) {
-    return std::async(std::launch::async, [](Ts... ts) { return Get(std::move(ts)...); },
+AsyncResponse GetAsync(Ts... ts) { // TODO: fishy missing &&
+    return std::async(std::launch::async, [](Ts... ts) { return Get(std::move(ts)...); }, // TODO: fishy missing &&
                       std::move(ts)...);
 }
 
 // Get callback methods
 template <typename Then, typename... Ts>
-auto GetCallback(Then then, Ts... ts) -> std::future<decltype(then(Get(std::move(ts)...)))> {
-    return std::async(std::launch::async, [](Then then, Ts... ts) {
+auto GetCallback(Then then, Ts... ts) -> std::future<decltype(then(Get(std::move(ts)...)))> { // TODO: fishy function wrapper - at least would also use &&
+    return std::async(std::launch::async, [](Then then, Ts... ts) { //TODO: fishy missing &&
         return then(Get(std::move(ts)...));
     }, std::move(then), std::move(ts)...);
 }
@@ -67,14 +68,14 @@ Response Post(Ts&&... ts) {
 // Post async methods
 template <typename... Ts>
 AsyncResponse PostAsync(Ts... ts) {
-    return std::async(std::launch::async, [](Ts... ts) { return Post(std::move(ts)...); },
+    return std::async(std::launch::async, [](Ts... ts) { return Post(std::move(ts)...); }, // TODO: fishy lack of &&
                       std::move(ts)...);
 }
 
 // Post callback methods
 template <typename Then, typename... Ts>
 auto PostCallback(Then then, Ts... ts) -> std::future<decltype(then(Post(std::move(ts)...)))> {
-    return std::async(std::launch::async, [](Then then, Ts... ts) {
+    return std::async(std::launch::async, [](Then then, Ts... ts) { // TODO: fishy lack of &&
         return then(Post(std::move(ts)...));
     }, std::move(then), std::move(ts)...);
 }

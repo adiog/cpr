@@ -42,7 +42,7 @@ class Error {
     }
 
     ErrorCode code;
-    std::string message;
+    std::string message; // TODO: this will be always copied.. maybe we should not care, OR create ResponseView having by default a shared_ptr to curl handler internals (shared with session, so in common use case, shared_ptr would hit refcount=2)
 
   private:
     static ErrorCode getErrorCodeForCurlError(std::int32_t curl_code);
