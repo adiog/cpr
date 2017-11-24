@@ -3,6 +3,7 @@ macro(set_cache_variable VAR_NAME VAR_DESCRIPTION)
     message(STATUS "Set ${VAR_NAME} to ${${VAR_NAME}}.")
 endmacro()
 
+add_subdirectory(openssl)
 
 # Code coverage
 
@@ -115,3 +116,4 @@ if(BUILD_CPR_TESTS)
     # Group under the "external" project folder in IDEs such as Visual Studio.
     set_property(TARGET mongoose PROPERTY FOLDER "external")
 endif()
+

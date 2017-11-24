@@ -7,3 +7,6 @@
 [submodule "opt/mongoose"]
 	path = opt/mongoose
 	url = https://github.com/whoshuu/mongoose.git
+[submodule "opt/openssl"]
+	path = opt/openssl
+	url = https://github.com/pol51/OpenSSL-CMake

@@ -457,6 +457,7 @@ Response Session::Impl::makeRequest(CURL* curl) {
 // clang-format off
 Session::Session() : pimpl_{ std::make_unique<Impl>() } {}
 Session::~Session() noexcept {}
+    // use forwarding reference -- if needed?
 void Session::SetUrl(const Url& url) { pimpl_->SetUrl(url); }
 void Session::SetUrl(Url&& url) { pimpl_->SetUrl(url); }
 void Session::SetParameters(const Parameters& parameters) { pimpl_->SetParameters(parameters); }
